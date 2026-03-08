@@ -140,6 +140,10 @@ app= Flask(__name__)
 customers= {}
 next_customer_id= 1
 
+# --------------------------------charging system
+invoices= {}
+next_invoice_id= 1
+
 @app.route("/create-customers", methods=["POST"])
 def create_customer():
     # You want to get JSON data sent by the client
@@ -184,6 +188,63 @@ def home():
 @app.route("/test")
 def test():
     return "Test route works"
+
+
+@app.route("/get-customer/<customer_id>")
+def get_customer(customer_id):
+    # Always check existence BEFORE accessing dictionary key.
+    # Wrong order:
+    # Access
+    # Then check
+    # Correct order:
+    # Check
+    # Then access
+    
+    if customer_id in customers:
+
+        customer_data= customers[customer_id]
+        name= customer_data["name"]
+        email= customer_data["email"]
+
+        return jsonify({
+            "customer_id": customer_id,
+            "name": name,
+            "email": email
+        })
+    else: 
+        return jsonify({"error": "Customer not found"})
+
+
+# charging system
+@app.route("/charge-customer", methods=["POST"])
+def charge_customer():
+    
+    data= request.get_json()
+    customer_id= data["customer_id"]
+    
+    if customer_id in customers:
+        
+        amount= data["amount"]
+
+        global next_invoice_id
+        invoice_id= f"inv_{next_invoice_id}"
+        next_invoice_id +=1
+
+        invoices[invoice_id]={
+            "customer_id": customer_id,
+            "amount": amount, 
+            "status": "charged"
+        }
+
+        return jsonify({
+            "invoice_id": invoice_id,
+            "customer_id": customer_id,
+            "amount": amount, 
+            "status": "charged"
+        })
+
+    else:
+        return jsonify({"error": "The customer doesnt exist." })
 
 
 
