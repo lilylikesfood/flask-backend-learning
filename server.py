@@ -245,6 +245,26 @@ def charge_customer():
 
     else:
         return jsonify({"error": "The customer doesnt exist." })
+    
+
+#  retrieve an invoice after it’s created
+@app.route("/get-invoice/<invoice_id>")
+def get_invoice(invoice_id):
+    if invoice_id in invoices:
+        invoice_data= invoices[invoice_id]
+
+        return jsonify({
+            "invoice_id": invoice_id,
+            "customer_id": invoice_data["customer_id"],
+            "amount": invoice_data["amount"],
+            "status": "charged"
+        })
+    
+    else: 
+        return jsonify({
+            "error": "It doesnt exist!"
+        })
+
 
 
 
