@@ -315,6 +315,12 @@ def all_invoices():
 # Filtering invoice of a specific customer 
 @app.route("/customer-invoices/<customer_id>")
 def customer_invoices(customer_id):
+    # Pre-check for customer existence
+    if customer_id not in customers:
+        return {
+            "Error": "404 Not found. "
+        }
+
     customer_invoices= []
 
     for i in invoices:
@@ -328,7 +334,6 @@ def customer_invoices(customer_id):
                "amount": invoice_data["amount"],
                "status": invoice_data["status"]
            }
-
 
            customer_invoices.append(invoice_obj) 
 
