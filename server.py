@@ -312,6 +312,31 @@ def all_invoices():
     })
 
 
+# Filtering invoice of a specific customer 
+@app.route("/customer-invoices/<customer_id>")
+def customer_invoices(customer_id):
+    customer_invoices= []
+
+    for i in invoices:
+        invoice_id= i
+        invoice_data= invoices[i]
+
+        if invoice_data["customer_id"] == customer_id:
+           invoice_obj={
+               "invoice_id": invoice_id,
+               "customer_id": invoice_data["customer_id"],
+               "amount": invoice_data["amount"],
+               "status": invoice_data["status"]
+           }
+
+
+           customer_invoices.append(invoice_obj) 
+
+    return jsonify({
+        "invoices": customer_invoices
+    })
+    
+
 
 if __name__== "__main__":
     app.run(debug=True, use_reloader=False)
