@@ -266,6 +266,51 @@ def get_invoice(invoice_id):
         })
 
 
+# Filtering and listing multiple items
+# Right now your invoices structure looks like this in memory:
+# invoices = {
+#   "inv_1": {"customer_id": "cust_1", "amount": 50, "status": "charged"},
+#   "inv_2": {"customer_id": "cust_1", "amount": 20, "status": "charged"},
+#   "inv_3": {"customer_id": "cust_2", "amount": 70, "status": "charged"}
+# }
+
+# your job is to turn that dictionary into a list of JSON objects
+# like this
+# [
+#   {"invoice_id": "inv_1", "customer_id": "cust_1", "amount": 50},
+#   {"invoice_id": "inv_2", "customer_id": "cust_1", "amount": 20},
+#   {"invoice_id": "inv_3", "customer_id": "cust_2", "amount": 70}
+# ]
+
+# Why return a list instead of a dictionary?
+# most APIs prefer a list of objects:
+# Reason 1 — predictable structure
+# Frontends expect collections to be arrays/lists.
+# Reason 2 — easier filtering & sorting later
+# Lists are much easier for that.
+# Reason 3 — real APIs do this
+
+@app.route("/all-invoices")
+def all_invoices():
+    all_invoices= []
+
+    for i in invoices:
+        invoices_id= i
+        invoices_data= invoices[i]
+
+        invoices_obj= {
+            "invoice_id": invoices_id,
+            "customer_id": invoices_data["customer_id"],
+            "amount": invoices_data["amount"],
+            "status": invoices_data["status"]
+        }
+        
+        all_invoices.append(invoices_obj)
+
+    return jsonify({
+        "invoices": all_invoices
+    })
+
 
 
 if __name__== "__main__":
