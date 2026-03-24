@@ -340,7 +340,152 @@ def customer_invoices(customer_id):
     return jsonify({
         "invoices": customer_invoices
     })
+
+
+# Helper functions
+# def get_invoices(customer_id=None):
+# meaning: The function can receive a customer_id, but it is optional.
+# Case A — no parameter passed: format_invoices()
+# Case B — parameter passed: format_invoices("cust_1")
+def format_invoices(customer_id=None):
+    # Create empty list
+    formatted_invoices= []
     
+    # A dictionary has pairs:key, value
+    # .items() returns both the key and the value together
+    # Conceptually it becomes:
+    # (inv_1 , {customer_id: cust_1, amount: 50})
+    # (inv_2 , {customer_id: cust_2, amount: 70})
+
+    # Python can automatically split that pair into two variables
+    # for invoice_id, invoice_data in invoices.items():
+    # first loop:
+    # invoice_id = "inv_1"
+    # invoice_data = {"customer_id": "cust_1", "amount": 50}
+
+    # dictionary loop cheat sheet
+    # for key in dict
+    # → loops keys
+    # for value in dict.values()
+    # → loops values
+    # for key, value in dict.items()
+    # → loops both
+    for invoice_id, invoice_data in invoices.items():
+        # usually order conditions like: general condition→ specific condition
+
+        # guard clause: it keeps code flatter and easier to read
+        # Developers often prefer guard clause:
+        # if bad_condition:
+        #     continue
+
+        # because it keeps the main logic outside the if.
+        # Instead of:
+        # if condition:
+        #     do 10 lines
+
+        # we write:
+        # if bad_condition:
+        #     continue
+
+        # do 10 lines
+
+        # A guard clause means:
+        # Exit early if something is invalid.
+        # This prevents deep nesting.
+
+        # if wrong_customer:
+        # continue
+        # This protects the main logic.
+
+        # Why developers like guard clauses
+        # Because the main logic stays clean:
+        # for invoice in invoices
+        #     guard 1
+        #     guard 2
+        #     guard 3
+
+        #     build invoice object
+
+        # Instead of messy nesting like:
+        # if customer matches
+        #     if status is paid
+        #         if something else
+        #             build object
+
+        # Guard clauses flatten the code.
+        if customer_id is not None and invoice_data["customer_id"] != customer_id:
+            # is not None instead of != None because None is a special object, not a normal value. but both work. 
+
+            # continue: Ignore the rest of this loop iteration and jump to the next invoice.
+            # So inside a loop:
+            # for item in something:
+            #     if condition:
+            #         continue
+
+            # means:
+            # if condition is true
+            #     ignore everything below
+            #     go to next loop iteration
+            continue
+        # Example:
+        # invoice_id = "inv_1"
+        # invoice_data = {
+        #     "customer_id": "cust_1",
+        #     "amount": 50
+        # }
+
+        # Now suppose your endpoint asked for:
+        # customer_id = "cust_2"
+
+        # So we check:
+        # invoice_data["customer_id"] != customer_id
+
+        # which becomes:
+        # "cust_1" != "cust_2"
+
+        # That is True.
+        # So Python executes:
+        # continue
+
+        # Meaning:
+        # skip building invoice_obj
+        # skip append
+        # go to next invoice
+
+        # when it's false -> build invoice_obj
+
+        # bad_case = True
+        # → continue
+        # → jump to next loop iteration
+        # → do_something() skipped
+
+        invoice_obj={
+               "invoice_id": invoice_id,
+               "customer_id": invoice_data["customer_id"],
+               "amount": invoice_data["amount"],
+               "status": invoice_data["status"]
+           }
+        
+        formatted_invoices.append(invoice_obj)
+
+    # JSON needs key:value pairs
+    # JSON is basically a structured data format
+    # example:
+    # {
+    #   "name": "Alice",
+    #   "age": 22
+    # }
+
+    # orginally i wrote 
+    # return jsonify({
+    #     "invoices": formatted_invoices
+    # })
+    # But since this is a helper, it should just return:
+    return formatted_invoices
+    # Then the route does: jsonfiy()
+
+    # helper function is not responsible for HTTP, and should return a Python list
+      
 
 
 if __name__== "__main__":
