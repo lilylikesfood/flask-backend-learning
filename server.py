@@ -257,7 +257,7 @@ def get_invoice(invoice_id):
             "invoice_id": invoice_id,
             "customer_id": invoice_data["customer_id"],
             "amount": invoice_data["amount"],
-            "status": "charged"
+            "status": invoice_data["status"]
         })
     
     else: 
@@ -486,6 +486,74 @@ def format_invoices(customer_id=None):
 
     # helper function is not responsible for HTTP, and should return a Python list
       
+# Helper function that updates an invoice status. like “mark this invoice as paid or failed.”
+def update_invoice_status(invoice_id, new_status):
+    # Check existence (guard clause)
+    # This is called a guard clause — it stops execution early if a condition is not met.
+    if invoice_id not in invoices: 
+        return {"error": "Invoice not found. "}
+    
+    invoice_data= invoices[invoice_id]
+    invoice_data["status"]= new_status
+
+    return {
+        "invoice_id": invoice_id,
+        "customer_id": invoice_data["customer_id"], 
+        "amount": invoice_data["amount"],
+        "status": invoice_data["status"]
+    }
+
+
+@app.route("/update-invoice-status", methods=["POST"])
+def route_update_invoice():
+    #  1. get JSON from request
+
+    # Property vs Method in Python
+    # You wrote: request.json (property) vs request.get_json() (method).
+    # Property (request.json)
+    # Think of it as a variable attached to the object.
+    # No parentheses ().
+    # Directly gives the value (parsed JSON if available).
+    # Example:
+    # data = request.json  # no () needed
+
+    # Method (request.get_json())
+    # Think of it as a function attached to the object.
+    # You call it with parentheses ().
+    # Can accept optional arguments (like force=True, silent=True).
+    # Example:
+    # data = request.get_json()  # you call it
+
+    # ✅ Bottom line: for simple use, they behave almost the same. Some developers prefer the method because it gives more control.
+    # ✅ Both are fine, just pick one
+    data= request.get_json()
+    # 2. extract invoice_id and new_status
+    invoice_id= data["invoice_id"]
+    status= data["status"]
+
+    # 3. call helper -> result = update_invoice_status(invoice_id, new_status)
+    result= update_invoice_status(invoice_id, status)
+
+    # 4. jsonify(result) and return
+    return jsonify(result)
+        
+    # Python Set
+    # Set = unordered collection of unique elements
+    # Defined using {} with values without key:value pairs
+
+    # Example:
+    # my_set = {1, 2, 3}
+    # print(my_set)  # output: {1, 2, 3}
+    # my_set.add(2)
+    # print(my_set)  # still {1, 2, 3} because duplicates are ignored
+
+    # Why your jsonify({result}) is wrong:
+    # {result} → Python sees it as a set containing your dict, not a dictionary.
+    # Flask jsonify() expects dict or list to convert to JSON properly.
+
+    # ✅ Correct way: just pass the dictionary:
+    # return jsonify(result)  # result is already a dict
+    
 
 
 if __name__== "__main__":
