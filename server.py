@@ -144,6 +144,12 @@ next_customer_id= 1
 invoices= {}
 next_invoice_id= 1
 
+# --------------------------------input validation
+ALLOWED_STATUS= {"charged", "paid", "failed"}
+# Use UPPERCASE for constants:
+# This tells other developers: “This value should NOT change”
+
+
 @app.route("/create-customers", methods=["POST"])
 def create_customer():
     # You want to get JSON data sent by the client
@@ -492,6 +498,83 @@ def update_invoice_status(invoice_id, new_status):
     # This is called a guard clause — it stops execution early if a condition is not met.
     if invoice_id not in invoices: 
         return {"error": "Invoice not found. "}
+    
+    # Input validation
+    # List []
+    # Ordered
+    # Slower lookup
+    # Set {}
+    # Unordered
+    # ⚡ Faster lookup (this is why we prefer it)
+
+    # 📦 List ([])
+    # ["charged", "paid", "failed"]
+    # 👉 Python checks one by one:
+
+    # Is it "charged"? ❌  
+    # Is it "paid"? ❌  
+    # Is it "failed"? ✅
+
+    # 👉 This is called linear search
+    # 👉 Time complexity: O(n) (slower as list grows)
+    # 🐢 O(n) — Linear Time
+    # 👉 Time grows proportionally with n
+
+    # Time complexity = how fast (or slow) an algorithm grows as input size increases
+    # n = number of elements
+    # Example:
+    # 3 invoices → n = 3
+    # 1,000 invoices → n = 1000
+    # 1,000,000 invoices → n = 1,000,000
+
+    # ⚡ Set ({})
+    # {"charged", "paid", "failed"}
+    # 👉 Python uses something called a hash table
+
+    # Instead of checking one by one:
+    # → instantly jump to where "paid" should be
+    # → check it directly
+
+    # 👉 No looping through everything
+    # 👉 Time complexity: O(1) (constant time)
+    # Meaning: 👉 No matter how big n is, time stays the same
+
+    # What happens internally?
+    # Python uses a hash table:
+    # 1.Convert key → hash (a number)
+    # 2.Jump directly to memory location
+    # 3.Get value
+    # 👉 No scanning
+    # 👉 No looping
+
+    # 🔥 Simple analogy
+    # List:
+    # Like checking names on paper:
+    # You read line by line until you find it
+    # Set:
+    # Like a locker system:
+    # You go directly to locker #42
+
+    # dictionary and set they’re both {}, Python distinguishes them by structure
+    # Dictionary
+    # {"key": "value"}
+    # 👉 key : value pair
+    # Set
+    # {"charged", "paid", "failed"}
+    # 👉 just values, NO keys
+
+    # To create empty set:
+    # set()
+
+    # Dictionary and Set are BOTH hash-based -> O(1)
+
+    if new_status not in allowed_status:
+        # 👉 if it's a set → O(1)
+        # 👉 if it's a list → O(n)
+        return {
+            "error": "Status invalid. Please try again. "
+            }
+    
     
     invoice_data= invoices[invoice_id]
     invoice_data["status"]= new_status
