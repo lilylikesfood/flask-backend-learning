@@ -497,7 +497,9 @@ def update_invoice_status(invoice_id, new_status):
     # Check existence (guard clause)
     # This is called a guard clause — it stops execution early if a condition is not met.
     if invoice_id not in invoices: 
-        return {"error": "Invoice not found. "}
+        return {"error": True,
+                "type": "not_found",
+                "message": "Invoice not found. "}
     
     # Input validation
     # List []
@@ -568,11 +570,13 @@ def update_invoice_status(invoice_id, new_status):
 
     # Dictionary and Set are BOTH hash-based -> O(1)
 
-    if new_status not in allowed_status:
+    if new_status not in ALLOWED_STATUS:
         # 👉 if it's a set → O(1)
         # 👉 if it's a list → O(n)
         return {
-            "error": "Status invalid. Please try again. "
+            "error": True,
+            "type": "invalid_request",
+            "message": "Invalid status. "
             }
     
     
@@ -580,10 +584,14 @@ def update_invoice_status(invoice_id, new_status):
     invoice_data["status"]= new_status
 
     return {
-        "invoice_id": invoice_id,
-        "customer_id": invoice_data["customer_id"], 
-        "amount": invoice_data["amount"],
-        "status": invoice_data["status"]
+        "error": False,
+        "data":{
+            "invoice_id": invoice_id,
+            "customer_id": invoice_data["customer_id"], 
+            "amount": invoice_data["amount"],
+            "status": invoice_data["status"]
+            }
+        
     }
 
 
@@ -617,8 +625,22 @@ def route_update_invoice():
     # 3. call helper -> result = update_invoice_status(invoice_id, new_status)
     result= update_invoice_status(invoice_id, status)
 
+    # map types to HTTP codes
+    if result["error"]:
+        if result["type"] == "not_found":
+            return jsonify(result), 404
+        elif result["type"] == "invalid_request":
+            return jsonify(result), 400
+        
+    # Flask can accept:
+    # Return Type	    Meaning
+    # string	        text response
+    # dict	            JSON response
+    # Response object	advanced/custom
+    # tuple	            (response, status_code)
+        
     # 4. jsonify(result) and return
-    return jsonify(result)
+    return jsonify(result), 200
         
     # Python Set
     # Set = unordered collection of unique elements
