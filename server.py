@@ -622,11 +622,167 @@ def validate_update_invoice_request(data):
                 "type": "invalid_request",
                 "message": "status is missing. "}
 
+    # Type validation
+    # this line can still crash:
+    # data["status"].strip()
+
+    # Why?
+    # Because .strip() only works on strings.
+
+    # so BEFORE .strip(), validate type.
+    # Is "status" a string?
+    # Syntax: isinstance(value, str)
+
+    # Why this is preferred over type():
+    # type(x) == str
+    # checks:
+    # “Is this EXACTLY a str?”
+
+    # isinstance(x, str)
+    # checks:
+    # “Can this behave like a str?”
+    # returns either true or false
+
+    # Python developers usually prefer isinstance() for validation.
+    check_type= data["status"]
+    if not isinstance(check_type, str):
+        return {
+            "error": True,
+            "type": "invalid_request", 
+            "message": "Status is not string. "
+        }
+    
+    # Case 1 — valid string
+    # Suppose:
+    # check_type = "paid"
+    # Then:
+    # isinstance("paid", str)
+    # becomes:
+    # True
+    # Now your condition:
+    # if not isinstance(check_type, str):
+    # becomes:
+    # if not True:
+    # which becomes:
+    # if False:
+    # So:
+    # block does NOT run
+    # NO error returned
+    # validation passes ✔
+
+    # That is correct.
+
+    # Case 2 — invalid type
+    # Suppose:
+    # check_type = 123
+    # Then:
+    # isinstance(123, str)
+    # becomes:
+    # False
+    # Now condition becomes:
+    # if not False:
+    # which becomes:
+    # if True:
+    # So:
+    # error block runs ✔
+    # validation fails ✔
+
+    # Also correct.
+
+    # The important mental model
+    # You are NOT asking:
+    # “Is it true?”
+    # You are asking:
+    # “Is this INVALID?”
+
+    # Backend validation is usually written as:
+    # if invalid:
+    #     reject request
+
+    # NOT:
+    # if valid:
+    #     continue
+
+    # Why?
+    # Because guard clauses are cleaner.
+
+    # So this:
+    # if not isinstance(check_type, str):
+
+    # means:
+    # “If status is INVALID (not string), reject immediately.”
+
+    # That’s the correct backend mindset.
+
+
+    # You’re thinking:
+    # “If they’re separate, how does second validation know first validation already happened?”
+
+    # Answer:
+    # Because Python runs code TOP → DOWN line by line.
+    # 👉 return immediately STOPS the function
+
+    # This is the key.
+    # Your code:
+    # if not isinstance(check_type, str):
+    #     return error
+
+    # if not data["status"].strip():
+    #     return error
+
+    # Execution flow becomes:
+
+    # Step 1:
+    # Check type
+
+    # If invalid:
+    #     RETURN immediately
+    #     function ENDS
+
+    # If valid:
+    #     continue downward
+
+    # That means:
+    # .strip()
+    # ONLY runs if Python survived the first check.
+
+    # Example — invalid type
+    # Suppose:
+    # status = 123
+
+    # First condition:
+    # if not isinstance(123, str):
+    # becomes:
+    # if True:
+    # So:
+    # return error
+    # Function ENDS immediately.
+    # Python NEVER reaches:
+    # .strip()
+    # That’s the important part.
+
+    # Example — valid string
+    # Suppose:
+    # status = "paid"
+    # First condition:
+    # if not isinstance("paid", str):
+    # becomes:
+    # if False:
+    # So Python SKIPS the return.
+    # Then continues downward safely to:
+    # .strip()
+
+    # Now it’s safe because you already proved it’s a string.
+
     if not data["status"].strip():
         return {
                 "error": True,
                 "type": "invalid_request",
                 "message": "status is invalid. "}
+        
+    # explicit success return
+    # validator returns None if valid
+    return None
 
 
 @app.route("/update-invoice-status", methods=["POST"])
