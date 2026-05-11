@@ -149,6 +149,63 @@ ALLOWED_STATUS= {"charged", "paid", "failed"}
 # Use UPPERCASE for constants:
 # This tells other developers: “This value should NOT change”
 
+# --------------------------------Building contracts layer
+# billing logic architecture
+# creating source of truth for billing rules
+# Invoices are temporary financial records.
+# Contracts are the permanent agreement.
+
+# The contract stores BILLING RULES.
+# Invoices are only generated FROM the rules.
+contracts= {}
+next_contract_id= 1
+
+@app.route("/create-contract", methods=["POST"])
+def create_contract():
+    data= request.get_json()
+
+    customer_id= data["customer_id"]
+    start_date= data["start_date"]
+    monthly_amount= data["monthly_amount"]
+    annual_inspection_fee= data["annual_inspection_fee"]
+
+    if customer_id not in customers:
+        return "Customer doesn't exist. "
+    
+    global next_contract_id
+    contract_id= f"contract_{next_contract_id}"
+    next_contract_id= next_contract_id +1
+
+    end_date= "2076-01-01"
+
+    contracts[contract_id]= {
+        "customer_id": customer_id,
+        "start_date": start_date,
+        "end_date": end_date,
+        "monthly_amount": monthly_amount,
+        "annual_inspection_fee": annual_inspection_fee
+    }
+
+    return jsonify(contracts[contract_id])
+
+
+# Customer Balance
+# building a rule:
+# “Show how much the customer owes in total, including unpaid past invoices.”
+@app.route("/customer-balance/<customer_id>")
+def customer_balance(customer_id):
+    total_due= 0
+
+    for i in invoices:
+        invoice= invoices[i]
+
+        if invoice["customer_id"] == customer_id and invoice["status"] !="paid":
+            total_due= total_due+invoice["amount"]
+        
+    return jsonify({"customer_id": customer_id, 
+                   "total_due":total_due})
+
+
 
 @app.route("/create-customers", methods=["POST"])
 def create_customer():
